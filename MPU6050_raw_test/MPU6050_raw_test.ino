@@ -20,14 +20,16 @@ Copyright (c) 2011 Jeff Rowberg
     #include "Wire.h"
 #endif
 
-#define ACC1AD0 8    // AD0 pin connect for accelerometer 1
-#define ACC2AD0 9    // AD0 pin connect for accelerometer 2
-#define GYROAD0 10   // AD0 pin connect for gyro
+#define SAMPLE_RATE 50  // 50hz sampling rate
+#define DLPF_MODE 6
+#define ACC1 8          // AD0 pin connect for accelerometer 1
+#define ACC2 9          // AD0 pin connect for accelerometer 2
+#define GYRO 10         // AD0 pin connect for gyro
 
 // class default I2C address is 0x68
 MPU6050 mpu; // default 0x68 i2c address on AD0 low 
 
-const int samplemillis = 20; // duration between each sample, 20ms = 50Hz sampling rate
+const int samplemillis = 1000/SAMPLE_RATE; // duration between each sample, 20ms = 50Hz sampling rate
 long currmillis = 0;
 long startmillis = 0;
 
@@ -36,43 +38,41 @@ void setup() {
     #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
         Wire.begin();
     #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-        Fastwire::setup(400, true);   // set I2C speed to 400kbps
+        Fastwire::setup(400, true);   // set I2C speed to 400kbps. Max speed 500kbps
     #endif
 
-    // Don't need if we're using I2C multiplexer
-    pinMode(ACC1AD0, OUTPUT);
-    pinMode(ACC2AD0, OUTPUT);
-    pinMode(GYROAD0, OUTPUT);
-    digitalWrite(ACC1AD0, HIGH);
-    digitalWrite(ACC2AD0, HIGH);
-    digitalWrite(GYROAD0, HIGH);
-    // ======================================= //
+    pinMode(ACC1, OUTPUT);
+    pinMode(ACC2, OUTPUT);
+    pinMode(GYRO, OUTPUT);
+    digitalWrite(ACC1, HIGH);
+    digitalWrite(ACC2, HIGH);
+    digitalWrite(GYRO, HIGH);
         
     Serial.begin(115200); // usb serial
     
     // initialize device
-    mpuselect(1);
+    mpuselect(ACC1);
     mpu.initialize();
-    mpu.setRate(50);                     //set rate to 50Hz for sampling
-    mpu.setDLPFMode(6);                   //set on-board digital low-pass filter configuration
+    mpu.setRate(SAMPLE_RATE);                     //set rate to 50Hz for sampling
+    mpu.setDLPFMode(DLPF_MODE);                   //set on-board digital low-pass filter configuration
     
-    mpuselect(2);
+    mpuselect(ACC2);
     mpu.initialize();
-    mpu.setRate(50);                     //set rate to 50Hz for sampling
-    mpu.setDLPFMode(6);                   //set on-board digital low-pass filter configuration
+    mpu.setRate(SAMPLE_RATE);                     //set rate to 50Hz for sampling
+    mpu.setDLPFMode(DLPF_MODE);                   //set on-board digital low-pass filter configuration
     
-    mpuselect(3);
+    mpuselect(GYRO);
     mpu.initialize();
-    mpu.setRate(50);                     //set rate to 50Hz for sampling
-    mpu.setDLPFMode(6);                   //set on-board digital low-pass filter configuration
+    mpu.setRate(SAMPLE_RATE);                     //set rate to 50Hz for sampling
+    mpu.setDLPFMode(DLPF_MODE);                   //set on-board digital low-pass filter configuration
     
     // verify connection
     Serial.println("Testing MPU connection...");
-    mpuselect(1);
+    mpuselect(ACC1);
     Serial.println(mpu.testConnection() ? "MPU6050(acc1) connection successful" : "MPU6050(acc1) connection failed");
-    mpuselect(2);
+    mpuselect(ACC2);
     Serial.println(mpu.testConnection() ? "MPU6050(acc2) connection successful" : "MPU6050(acc1) connection failed");
-    mpuselect(3);
+    mpuselect(GYRO);
     Serial.println(mpu.testConnection() ? "MPU6050(gyro) connection successful" : "MPU6050(acc1) connection failed");
     
     delay(3000);
@@ -103,20 +103,20 @@ void setup() {
 
 void mpuselect(int numMpu){
   switch(numMpu){
-    case 1:
-      digitalWrite(ACC1AD0, LOW);
-      digitalWrite(ACC2AD0, HIGH);
-      digitalWrite(GYROAD0, HIGH);
+    case ACC1:
+      digitalWrite(ACC1, LOW);
+      digitalWrite(ACC2, HIGH);
+      digitalWrite(GYRO, HIGH);
       break;
-    case 2:
-      digitalWrite(ACC1AD0, HIGH);
-      digitalWrite(ACC2AD0, LOW);
-      digitalWrite(GYROAD0, HIGH);
+    case ACC2:
+      digitalWrite(ACC1, HIGH);
+      digitalWrite(ACC2, LOW);
+      digitalWrite(GYRO, HIGH);
       break;
-    case 3:
-      digitalWrite(ACC1AD0, HIGH);
-      digitalWrite(ACC2AD0, HIGH);
-      digitalWrite(GYROAD0, LOW);
+    case GYRO:
+      digitalWrite(ACC1, HIGH);
+      digitalWrite(ACC2, HIGH);
+      digitalWrite(GYRO, LOW);
       break;
   }
 }
@@ -129,11 +129,11 @@ void loop() {
     currmillis = millis();
     if ((currmillis - startmillis) >= samplemillis){
       // these methods (and a few others) are also available
-      mpuselect(1);
+      mpuselect(ACC1);
       mpu.getAcceleration(&ax, &ay, &az);
-      mpuselect(2);
+      mpuselect(ACC2);
       mpu.getAcceleration(&ax2, &ay2, &az2);
-      mpuselect(3);
+      mpuselect(GYRO);
       mpu.getRotation(&gx, &gy, &gz);
 
       // Output in readeable format. Slow
@@ -151,8 +151,6 @@ void loop() {
       Serial.print(gx); Serial.print("\t");
       Serial.print(gy); Serial.print("\t");
       Serial.println(gz);
-
-      // ================================================ //
 
       // To output in binary (fast, uncompressed and no data loss), use the following:
 //      Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));   // acc1 x-axis
