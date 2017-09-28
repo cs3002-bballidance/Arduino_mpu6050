@@ -74,7 +74,39 @@ void setup() {
     Serial.println(mpu.testConnection() ? "MPU6050(acc2) connection successful" : "MPU6050(acc1) connection failed");
     mpuselect(GYRO);
     Serial.println(mpu.testConnection() ? "MPU6050(gyro) connection successful" : "MPU6050(acc1) connection failed");
+
+//    mpuselect(ACC1);
+//    Serial.print("(3)X offset: ");
+//    Serial.println(mpu.getXAccelOffset()); // or mpu.getXGyroOffsetTC()
+//    Serial.print("(3)Y Offset: ");
+//    Serial.println(mpu.getYAccelOffset());
+//    Serial.print("(3)Z Offset: ");
+//    Serial.println(mpu.getZAccelOffset());
+
+    mpuselect(ACC1);
+    mpu.setXAccelOffset(-4489);
+    mpu.setYAccelOffset(1396);
+    mpu.setZAccelOffset(400);
+    mpu.setXGyroOffset(-76);
+    mpu.setYGyroOffset(-42);
+    mpu.setZGyroOffset(262);
+
+    mpuselect(ACC2);
+    mpu.setXAccelOffset(-1536);
+    mpu.setYAccelOffset(-586);
+    mpu.setZAccelOffset(1161);
+    mpu.setXGyroOffset(-1268);
+    mpu.setYGyroOffset(-19);
+    mpu.setZGyroOffset(15);
     
+    mpuselect(GYRO);
+    mpu.setXGyroOffset(-238);
+    mpu.setYGyroOffset(2293);
+    mpu.setZGyroOffset(2215);
+    mpu.setXGyroOffset(90);
+    mpu.setYGyroOffset(30);
+    mpu.setZGyroOffset(34);
+        
     delay(3000);
     
     // use the code below to change accel/gyro offset values    
@@ -137,20 +169,20 @@ void loop() {
       mpu.getRotation(&gx, &gy, &gz);
 
       // Output in readeable format. Slow
-      Serial.print("acc1"); Serial.print("\t");
-      Serial.print(ax); Serial.print("\t");
-      Serial.print(ay); Serial.print("\t");
-      Serial.println(az);
+//      Serial.print("1"); Serial.print("\t");
+//      Serial.print(ax); Serial.print("\t");
+//      Serial.print(ay); Serial.print("\t");
+//      Serial.println(az);
 
-      Serial.print("acc2"); Serial.print("\t");
-      Serial.print(ax2); Serial.print("\t");
-      Serial.print(ay2); Serial.print("\t");
-      Serial.println(az2);
+//      Serial.print("2"); Serial.print("\t");
+//      Serial.print(ax2); Serial.print("\t");
+//      Serial.print(ay2); Serial.print("\t");
+//      Serial.println(az2);
 
-      Serial.print("gyro"); Serial.print("\t");
-      Serial.print(gx); Serial.print("\t");
-      Serial.print(gy); Serial.print("\t");
-      Serial.println(gz);
+//      Serial.print("3"); Serial.print("\t");
+//      Serial.print(gx); Serial.print("\t");
+//      Serial.print(gy); Serial.print("\t");
+//      Serial.println(gz);
 
       // To output in binary (fast, uncompressed and no data loss), use the following:
 //      Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));   // acc1 x-axis
