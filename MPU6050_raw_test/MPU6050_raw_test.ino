@@ -51,20 +51,13 @@ void setup() {
     Serial.begin(115200); // usb serial
     
     // initialize device
-    mpuselect(ACC1);
-    mpu.initialize();
-    mpu.setRate(SAMPLE_RATE);                     //set rate to 50Hz for sampling
-    mpu.setDLPFMode(DLPF_MODE);                   //set on-board digital low-pass filter configuration
-    
-    mpuselect(ACC2);
-    mpu.initialize();
-    mpu.setRate(SAMPLE_RATE);                     //set rate to 50Hz for sampling
-    mpu.setDLPFMode(DLPF_MODE);                   //set on-board digital low-pass filter configuration
-    
-    mpuselect(GYRO);
-    mpu.initialize();
-    mpu.setRate(SAMPLE_RATE);                     //set rate to 50Hz for sampling
-    mpu.setDLPFMode(DLPF_MODE);                   //set on-board digital low-pass filter configuration
+    setRate(ACC1, SAMPLE_RATE, DLPF_MODE);
+    setRate(ACC2, SAMPLE_RATE, DLPF_MODE);
+    setRate(GYRO, SAMPLE_RATE, DLPF_MODE);
+
+    setOffset(ACC1, -4489, 1396, 400, -76, -42, 262);
+    setOffset(ACC2, -1536, -586, 1161, -1268, -19, 15);
+    setOffset(GYRO, -238, 2293, 2215, 90, 30, 34);
     
     // verify connection
     Serial.println("Testing MPU connection...");
@@ -74,63 +67,26 @@ void setup() {
     Serial.println(mpu.testConnection() ? "MPU6050(acc2) connection successful" : "MPU6050(acc1) connection failed");
     mpuselect(GYRO);
     Serial.println(mpu.testConnection() ? "MPU6050(gyro) connection successful" : "MPU6050(acc1) connection failed");
-
-//    mpuselect(ACC1);
-//    Serial.print("(3)X offset: ");
-//    Serial.println(mpu.getXAccelOffset()); // or mpu.getXGyroOffsetTC()
-//    Serial.print("(3)Y Offset: ");
-//    Serial.println(mpu.getYAccelOffset());
-//    Serial.print("(3)Z Offset: ");
-//    Serial.println(mpu.getZAccelOffset());
-
-    mpuselect(ACC1);
-    mpu.setXAccelOffset(-4489);
-    mpu.setYAccelOffset(1396);
-    mpu.setZAccelOffset(400);
-    mpu.setXGyroOffset(-76);
-    mpu.setYGyroOffset(-42);
-    mpu.setZGyroOffset(262);
-
-    mpuselect(ACC2);
-    mpu.setXAccelOffset(-1536);
-    mpu.setYAccelOffset(-586);
-    mpu.setZAccelOffset(1161);
-    mpu.setXGyroOffset(-1268);
-    mpu.setYGyroOffset(-19);
-    mpu.setZGyroOffset(15);
     
-    mpuselect(GYRO);
-    mpu.setXGyroOffset(-238);
-    mpu.setYGyroOffset(2293);
-    mpu.setZGyroOffset(2215);
-    mpu.setXGyroOffset(90);
-    mpu.setYGyroOffset(30);
-    mpu.setZGyroOffset(34);
-        
     delay(3000);
     
-    // use the code below to change accel/gyro offset values    
-//    Serial.println("Updating internal sensor offsets...");
-    // -76	-2359	1688	0	0	0
-//    Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
-//    Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
-//    Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
-//    Serial.print(accelgyro.getXGyroOffset()); Serial.print("\t"); // 0
-//    Serial.print(accelgyro.getYGyroOffset()); Serial.print("\t"); // 0
-//    Serial.print(accelgyro.getZGyroOffset()); Serial.print("\t"); // 0
-//    Serial.print("\n");
-//    accelgyro.setXGyroOffset(220);
-//    accelgyro.setYGyroOffset(76);
-//    accelgyro.setZGyroOffset(-85);
-//    Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
-//    Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
-//    Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
-//    Serial.print(accelgyro.getXGyroOffset()); Serial.print("\t"); // 0
-//    Serial.print(accelgyro.getYGyroOffset()); Serial.print("\t"); // 0
-//    Serial.print(accelgyro.getZGyroOffset()); Serial.print("\t"); // 0
-//    Serial.print("\n");
-    
     startmillis = millis();
+}
+void setRate(int mpuNum, int sampleRate, int dlpfMode){
+  mpuselect(mpuNum);
+  mpu.initialize();
+  mpu.setRate(sampleRate);                     //set rate to 50Hz for sampling
+  mpu.setDLPFMode(dlpfMode);                   //set on-board digital low-pass filter configuration  
+}
+
+void setOffset(int mpuNum, int accX, int  accY, int accZ, int gyroX, int gyroY, int gyroZ){
+  mpuselect(mpuNum);
+  mpu.setXAccelOffset(accX);
+  mpu.setYAccelOffset(accY);
+  mpu.setZAccelOffset(accZ);
+  mpu.setXGyroOffset(gyroX);
+  mpu.setYGyroOffset(gyroY);
+  mpu.setZGyroOffset(gyroZ);
 }
 
 void mpuselect(int numMpu){
@@ -179,10 +135,10 @@ void loop() {
 //      Serial.print(ay2); Serial.print("\t");
 //      Serial.println(az2);
 
-//      Serial.print("3"); Serial.print("\t");
-//      Serial.print(gx); Serial.print("\t");
-//      Serial.print(gy); Serial.print("\t");
-//      Serial.println(gz);
+      Serial.print("3"); Serial.print("\t");
+      Serial.print(gx); Serial.print("\t");
+      Serial.print(gy); Serial.print("\t");
+      Serial.println(gz);
 
       // To output in binary (fast, uncompressed and no data loss), use the following:
 //      Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));   // acc1 x-axis
