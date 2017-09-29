@@ -55,9 +55,9 @@ void setup() {
     setRate(ACC2, SAMPLE_RATE, DLPF_MODE);
     setRate(GYRO, SAMPLE_RATE, DLPF_MODE);
 
-    setOffset(ACC1, -4489, 1396, 400, -76, -42, 262);
-    setOffset(ACC2, -1536, -586, 1161, -1268, -19, 15);
-    setOffset(GYRO, -238, 2293, 2215, 90, 30, 34);
+    setOffset(ACC1, -4516, 1386, 389, -67, -44, 258);
+    setOffset(ACC2, -1568, -590, 1163, -1257, -26, 15);
+    setOffset(GYRO, -240, 2307, 2200, 89, 30, 45);
     
     // verify connection
     Serial.println("Testing MPU connection...");
@@ -125,20 +125,20 @@ void loop() {
       mpu.getRotation(&gx, &gy, &gz);
 
       // Output in readeable format. Slow
-//      Serial.print("1"); Serial.print("\t");
-//      Serial.print(ax); Serial.print("\t");
-//      Serial.print(ay); Serial.print("\t");
-//      Serial.println(az);
+      Serial.print("1"); Serial.print("\t");
+      Serial.print(ax); Serial.print("\t");
+      Serial.print(ay); Serial.print("\t");
+      Serial.println(az);
 
 //      Serial.print("2"); Serial.print("\t");
 //      Serial.print(ax2); Serial.print("\t");
 //      Serial.print(ay2); Serial.print("\t");
 //      Serial.println(az2);
 
-      Serial.print("3"); Serial.print("\t");
-      Serial.print(gx); Serial.print("\t");
-      Serial.print(gy); Serial.print("\t");
-      Serial.println(gz);
+//      Serial.print("3"); Serial.print("\t");
+//      Serial.print(gx); Serial.print("\t");
+//      Serial.print(gy); Serial.print("\t");
+//      Serial.println(gz);
 
       // To output in binary (fast, uncompressed and no data loss), use the following:
 //      Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));   // acc1 x-axis
