@@ -66,11 +66,12 @@ void setup() {
     digitalWrite(GYRO, HIGH);
         
     Serial.begin(115200); // usb serial
-    
+
+    Serial.println("Initializing sensors...");
     // initialize device
-    setRate(ACC1, SAMPLE_RATE, DLPF_MODE);
-    setRate(ACC2, SAMPLE_RATE, DLPF_MODE);
-    setRate(GYRO, SAMPLE_RATE, DLPF_MODE);
+    setSensors(ACC1, SAMPLE_RATE, DLPF_MODE);
+    setSensors(ACC2, SAMPLE_RATE, DLPF_MODE);
+    setSensors(GYRO, SAMPLE_RATE, DLPF_MODE);
 
     setOffset(ACC1, -4516, 1386, 389, -67, -44, 258);   // calibrated offset for each sensors
     setOffset(ACC2, -1568, -590, 1163, -1257, -26, 15);
@@ -87,10 +88,11 @@ void setup() {
     calibrateInitial();
     delay(3000);
     
+    Serial.println("Start polling...");
     startmillis = millis();
 }
 
-void setRate(int mpuNum, int sampleRate, int dlpfMode){
+void setSensors(int mpuNum, int sampleRate, int dlpfMode){
   mpuselect(mpuNum);
   mpu.initialize();
   mpu.setRate(sampleRate);                     //set rate to 50Hz for sampling
