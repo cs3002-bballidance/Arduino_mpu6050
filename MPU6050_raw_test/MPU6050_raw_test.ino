@@ -2,7 +2,9 @@
 // 10/7/2011 by Jeff Rowberg <jeff@rowberg.net>
 // Updates should (hopefully) always be available at https://github.com/jrowberg/i2cdevlib
 // https://www.i2cdevlib.com/forums/topic/12-a-question-to-change-the-sample-rate-in-mpu6050h-file/
-
+// Useful site: http://samselectronicsprojects.blogspot.sg/2014/07/processing-data-from-mpu-6050.html?m=1
+// http://cache.freescale.com/files/sensors/doc/app_note/AN3447.pdf
+// https://www.invensense.com/products/motion-tracking/6-axis/mpu-6050/
 /* ============================================
 I2Cdev device library code is placed under the MIT license
 Copyright (c) 2011 Jeff Rowberg
@@ -33,13 +35,6 @@ const int samplemillis = 1000/SAMPLE_RATE; // duration between each sample, 20ms
 
 long currmillis = 0;
 long startmillis = 0;
-
-float sumAcc1X = 0;
-float sumAcc1Y = 0;
-float sumAcc1Z = 0;
-float sumAcc2X = 0;
-float sumAcc2Y = 0;
-float sumAcc2Z = 0;
 
 float avgAcc1X = 0;
 float avgAcc1Y = 0;
@@ -98,13 +93,17 @@ void setSensors(int mpuNum, int sampleRate, int dlpfMode){
   mpu.setRate(sampleRate);                     //set rate to 50Hz for sampling
   mpu.setDLPFMode(dlpfMode);                   //set on-board digital low-pass filter configuration  
   mpu.setFullScaleAccelRange(3);
-  /*
-   * 0 = +/- 2g
-   * 1 = +/- 4g
-   * 2 = +/- 8g
-   * 3 = +/- 16g
+    /*
+   * AFS_SEL | Full Scale Range   | LSB Sensitivity
+   * --------+--------------------+----------------
+   * 0       |       +/- 2g       | 16384 LSB/g
+   * 1       |       +/- 4g       | 8192 LSB/g
+   * 2       |       +/- 8g       | 4096 LSB/g
+   * 3       |       +/- 16g      | 2048 LSB/g
   */
   mpu.setFullScaleGyroRange(2);
+  Serial.print("Acc range: "); Serial.println(mpu.getFullScaleAccelRange());
+  Serial.print("Gyro range: "); Serial.println(mpu.getFullScaleGyroRange());
   /*
    * FS_SEL | Full Scale Range   | LSB Sensitivity
    * -------+--------------------+----------------
@@ -128,6 +127,13 @@ void setOffset(int mpuNum, int accX, int  accY, int accZ, int gyroX, int gyroY, 
 void calibrateInitial(){
   int16_t ax, ay, az;
   int16_t ax2, ay2, az2;
+
+  float sumAcc1X = 0;
+  float sumAcc1Y = 0;
+  float sumAcc1Z = 0;
+  float sumAcc2X = 0;
+  float sumAcc2Y = 0;
+  float sumAcc2Z = 0;
 
   for(int i=0; i< numSample; i++){
     mpuselect(ACC1);
@@ -185,20 +191,20 @@ void loop() {
       mpu.getRotation(&gx, &gy, &gz);
 
       // Output in readeable format. Slow
-      Serial.print("1"); Serial.print("\t");
-      Serial.print((int)(ax-avgAcc1X)); Serial.print("\t");
-      Serial.print((int)(ay-avgAcc1Y)); Serial.print("\t");
-      Serial.println((int)(az-avgAcc1Z));
+//      Serial.print("1"); Serial.print("\t");
+      Serial.print((int)((ax-avgAcc1X)/2048.0)); Serial.print(",");
+      Serial.print((int)((ay-avgAcc1Y)/2048.0)); Serial.print(",");
+      Serial.print((int)((az-avgAcc1Z)/2048.0)); Serial.print(",");
 
-      Serial.print("2"); Serial.print("\t");
-      Serial.print((int)(ax2-avgAcc2X)); Serial.print("\t");
-      Serial.print((int)(ay2-avgAcc2Y)); Serial.print("\t");
-      Serial.println((int)(az2-avgAcc2Z));
+//      Serial.print("2"); Serial.print("\t");
+      Serial.print((int)((ax2-avgAcc2X)/2048.0)); Serial.print(",");
+      Serial.print((int)((ay2-avgAcc2Y)/2048.0)); Serial.print(",");
+      Serial.println((int)((az2-avgAcc2Z)/2048.0)); Serial.print(",");
 
-      Serial.print("3"); Serial.print("\t");
-      Serial.print(gx); Serial.print("\t");
-      Serial.print(gy); Serial.print("\t");
-      Serial.println(gz);
+//      Serial.print("3"); Serial.print("\t");
+      Serial.print((int)(gx/32.8)); Serial.print(",");
+      Serial.print((int)(gy/32.8)); Serial.print(",");
+      Serial.println((int)(gz/32.8));
 
       // To output in binary (fast, uncompressed and no data loss), use the following:
 //      Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));   // acc1 x-axis
