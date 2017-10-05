@@ -23,10 +23,10 @@ Copyright (c) 2011 Jeff Rowberg
 #endif
 
 #define SAMPLE_RATE 40  // 50hz sampling rate
-#define DLPF_MODE 6
-#define ACC1 8          // AD0 pin connect for accelerometer 1
-#define ACC2 9          // AD0 pin connect for accelerometer 2
-#define GYRO 10         // AD0 pin connect for gyro
+#define DLPF_MODE   0   // digital low pass filter mode
+#define ACC1        8   // AD0 pin connect for accelerometer 1
+#define ACC2        9   // AD0 pin connect for accelerometer 2
+#define GYRO        1   // AD0 pin connect for gyro
 
 // class default I2C address is 0x68
 MPU6050 mpu; // default 0x68 i2c address on AD0 low 
@@ -36,12 +36,12 @@ const int samplemillis = 1000/SAMPLE_RATE; // duration between each sample, 20ms
 long currmillis = 0;
 long startmillis = 0;
 
-float avgAcc1X = 0;
-float avgAcc1Y = 0;
-float avgAcc1Z = 0;
-float avgAcc2X = 0;
-float avgAcc2Y = 0;
-float avgAcc2Z = 0;
+int avgAcc1X = 0;
+int avgAcc1Y = 0;
+int avgAcc1Z = 0;
+int avgAcc2X = 0;
+int avgAcc2Y = 0;
+int avgAcc2Z = 0;
 
 const int numSample = 100;
 
@@ -64,9 +64,9 @@ void setup() {
 
 //    Serial.println("Initializing sensors...");
     // initialize device
-    setSensors(ACC1, SAMPLE_RATE, DLPF_MODE);
-    setSensors(ACC2, SAMPLE_RATE, DLPF_MODE);
-    setSensors(GYRO, SAMPLE_RATE, DLPF_MODE);
+    setSensors(ACC1, SAMPLE_RATE);
+    setSensors(ACC2, SAMPLE_RATE);
+    setSensors(GYRO, SAMPLE_RATE);
 
     setOffset(ACC1, -4516, 1386, 389, -67, -44, 258);   // calibrated offset for each sensors
     setOffset(ACC2, -1568, -590, 1163, -1257, -26, 15);
@@ -80,6 +80,7 @@ void setup() {
 //    Serial.println(mpu.testConnection() ? "MPU6050(acc2) connection successful" : "MPU6050(acc1) connection failed");
 //    mpuselect(GYRO);
 //    Serial.println(mpu.testConnection() ? "MPU6050(gyro) connection successful" : "MPU6050(acc1) connection failed");
+
     calibrateInitial();
     delay(3000);
     
@@ -87,12 +88,12 @@ void setup() {
     startmillis = millis();
 }
 
-void setSensors(int mpuNum, int sampleRate, int dlpfMode){
+void setSensors(int mpuNum, int sampleRate){
   mpuselect(mpuNum);
   mpu.initialize();
   mpu.setRate(sampleRate);                     //set rate to 50Hz for sampling
-  mpu.setDLPFMode(dlpfMode);                   //set on-board digital low-pass filter configuration  
-  mpu.setFullScaleAccelRange(1);
+  mpu.setDLPFMode(DLPF_MODE);                   //set on-board digital low-pass filter configuration  
+  //mpu.setFullScaleAccelRange(1);
     /*
    * AFS_SEL | Full Scale Range   | LSB Sensitivity
    * --------+--------------------+----------------
@@ -101,7 +102,7 @@ void setSensors(int mpuNum, int sampleRate, int dlpfMode){
    * 2       |       +/- 8g       | 4096 LSB/g
    * 3       |       +/- 16g      | 2048 LSB/g
   */
-  mpu.setFullScaleGyroRange(0);
+  //mpu.setFullScaleGyroRange(0);
 //  Serial.print("Acc range: "); Serial.println(mpu.getFullScaleAccelRange());
 //  Serial.print("Gyro range: "); Serial.println(mpu.getFullScaleGyroRange());
   /*
@@ -135,7 +136,7 @@ void calibrateInitial(){
   float sumAcc2Y = 0;
   float sumAcc2Z = 0;
 
-  for(int i=0; i< numSample; i++){
+  for(int i = 0; i < numSample; i++){
     mpuselect(ACC1);
     mpu.getAcceleration(&ax, &ay, &az);
     mpuselect(ACC2);
@@ -148,12 +149,12 @@ void calibrateInitial(){
     sumAcc2Z += az2;
     delay(20);
   }
-  avgAcc1X = sumAcc1X / numSample;
-  avgAcc1Y = sumAcc1Y / numSample;
-  avgAcc1Z = sumAcc1Z / numSample;
-  avgAcc2X = sumAcc2X / numSample;
-  avgAcc2Y = sumAcc2Y / numSample;
-  avgAcc2Z = sumAcc2Z / numSample;
+  avgAcc1X = (int)(sumAcc1X / numSample);
+  avgAcc1Y = (int)(sumAcc1Y / numSample);
+  avgAcc1Z = (int)(sumAcc1Z / numSample);
+  avgAcc2X = (int)(sumAcc2X / numSample);
+  avgAcc2Y = (int)(sumAcc2Y / numSample);
+  avgAcc2Z = (int)(sumAcc2Z / numSample);
 }
 
 void mpuselect(int numMpu){
@@ -192,19 +193,19 @@ void loop() {
 
       // Output in readeable format. Slow
 //      Serial.print("1"); Serial.print("\t");
-      Serial.print((int)((ax-avgAcc1X))); Serial.print(",");
-      Serial.print((int)((ay-avgAcc1Y))); Serial.print(",");
-      Serial.print((int)((az-avgAcc1Z))); Serial.print(",");
+      Serial.print((int)(((ax-avgAcc1X)/8192.0)*9.81)); Serial.print(",");
+      Serial.print((int)(((ay-avgAcc1Y)/8192.0)*9.81)); Serial.print(",");
+      Serial.print((int)(((az-avgAcc1Z)/8192.0)*9.81)); Serial.print(",");
 
 //      Serial.print("2"); Serial.print("\t");
-      Serial.print((int)((ax2-avgAcc2X))); Serial.print(",");
-      Serial.print((int)((ay2-avgAcc2Y))); Serial.print(",");
-      Serial.print((int)((az2-avgAcc2Z))); Serial.print(",");
+      Serial.print((int)(((ax2-avgAcc2X)/8192.0)*9.81)); Serial.print(",");
+      Serial.print((int)(((ay2-avgAcc2Y)/8192.0)*9.81)); Serial.print(",");
+      Serial.print((int)(((az2-avgAcc2Z)/8192.0)*9.81)); Serial.print(",");
 
 //      Serial.print("3"); Serial.print("\t");
-      Serial.print((int)(gx)); Serial.print(",");
-      Serial.print((int)(gy)); Serial.print(",");
-      Serial.println((int)(gz));
+      Serial.print((int)((gx)/250.0)); Serial.print(",");
+      Serial.print((int)((gy)/250.0)); Serial.print(",");
+      Serial.println((int)((gz)/250.0));
 
       // To output in binary (fast, uncompressed and no data loss), use the following:
 //      Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));   // acc1 x-axis
